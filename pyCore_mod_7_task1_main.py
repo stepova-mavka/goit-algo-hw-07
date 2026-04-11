@@ -41,7 +41,7 @@ def change_contact(args, book:AddressBook):
     if record: #if found update phone
         record.edit_phone(phone, phone_new)
     else: 
-        message = "Error, phone not updated"
+        message = "Invalid contact name"
     return message
 
 @input_error
@@ -72,7 +72,11 @@ def show_birthday(args, book:AddressBook):
     name, *_ = args
     record = book.find(name)
     if record:
-        return record.return_birthday()
+        date = record.return_birthday()
+        birthday = date if date is not None else "No birthday found"
+        return birthday
+    else: 
+        return f"Contact {name} not found, can't show birthday"
 
 @input_error
 def birthdays(book:AddressBook):
