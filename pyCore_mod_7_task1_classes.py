@@ -105,13 +105,7 @@ class AddressBook(UserDict):
     def get_upcoming_birthdays(self, days=7):
         upcoming_birthdays = []
         today = date.today()
-
-        print(f"\nContact list from bday function: {self.data}")
-
         for contact in self.data.values():
-
-            print(f"\nContact object: {contact}\n")
-            print(f"Contact Birthday property: {contact.birthday}\n")
             #rewrite birth year w current year
             birthday_this_year = contact.birthday.value.replace(year=today.year)
 
@@ -138,19 +132,89 @@ class AddressBook(UserDict):
             return "Empty"
         return "\n".join(str(record) for record in self.data.values())
 
-def main():   
-    record1 = Record("Viktor")
-    record2 = Record("Vasyl")
+def input_error(func):
+    def inner(*args, **kwargs):
+        try: 
+            return func(*args, **kwargs)
+        except ValueError:
+            return "Please provide a name and a phone number."
+        except KeyError:
+            return "Please provide a valid contact name."
+        except IndexError:
+            return "Please provide a name."
+    return inner
 
-    record1.add_birthday("11.04.2006")
-    record2.add_birthday("16.04.2007")
+@input_error
+def parse_input(user_input):
+    cmd, *args = user_input.split()
+    cmd = cmd.strip().lower()
+    return cmd, *args
 
-    book = AddressBook()
+@input_error
+def add_contact(args, contacts):
+    name, phone = args
+    contacts[name] = phone 
+    return "Contact added"
 
-    book.add_record(record1)
-    book.add_record(record2)
+@input_error
+def change_contact(args, contacts):
+    name, phone = args
+    contacts[name]  #check if contact with such name exists
+    contacts.update({name : phone})
+    return f"Contact {name} updated with {phone} as new phone"
 
-    print(book.get_upcoming_birthdays())
+@input_error
+def print_phone(args, contacts):
+    name = args[0]
+    return contacts[name]
+
+@input_error    
+def print_all_contacts(contacts):
+    if len(contacts) == 0:
+        return "No saved contacts"
+    else:
+        contacts_output = ""
+        for name, phone in contacts.items():
+            contacts_output += f"Contact Name: {name}, Phone Number: {phone}\n"
+        return contacts_output
+
+
+def main():
+
+
+    contacts = {}
+    print("Welcome to the assistant bot!")
+    while True:
+        user_input = input("Enter a command: ")
+        command, *args = parse_input(user_input)
+
+        if command in ["close", "exit"]:
+            print("Goodbye!")
+            break
+        elif command == "hello":
+            print("How can I help you?")
+        elif command == "add":
+            print(add_contact(args, contacts))
+        elif command == "change":
+            print(change_contact(args, contacts))
+        elif command == "phone":
+            print(print_phone(args, contacts))
+        elif command == "all":
+            print(print_all_contacts(contacts))
+        else:
+            print("Invalid command")   
+    # record1 = Record("Viktor")
+    # record2 = Record("Vasyl")
+
+    # record1.add_birthday("11.04.2006")
+    # record2.add_birthday("16.04.2007")
+
+    # book = AddressBook()
+
+    # book.add_record(record1)
+    # book.add_record(record2)
+
+    # print(book.get_upcoming_birthdays())
 
 if __name__ == "__main__":
     main()
