@@ -25,6 +25,9 @@ class Phone(Field):
         if len(value) != 10:
             raise ValueError("Phone number must be exactly 10 digits")
         self._value = value
+    
+    def __str__(self):
+        return self.value
 
 class Birthday(Field):
     def __init__(self, value:str):
@@ -71,6 +74,10 @@ class Record:
     def add_birthday(self, birthday_value:str):
         self.birthday = Birthday(birthday_value)
 
+    def return_birthday(self):
+        if self.birthday:
+            return self.birthday.value.strftime("%d.%m.%Y")
+    
     def __str__(self):
         return f"Contact name: {self.name.value},\nBirthday: {self.birthday}\nPhones: {'; '.join(p.value for p in self.phones)}"
 
@@ -83,14 +90,14 @@ class AddressBook(UserDict):
         self.data.pop(name, None)            
 
     def find(self, name:str):
-        return self.data.get(name)
+        return self.data.get(name) #return Record object
     
     def _string_to_date(self, date_string:str):
         return datetime.strptime(date_string, "%Y.%m.%d").date()
 
     def _date_to_string(self, date):
-        return date.strftime("%Y.%m.%d")
-
+        return date.strftime("%d.%m.%Y")
+    
     def _find_next_weekday(self, start_date, weekday):
         days_ahead = weekday - start_date.weekday()
         if days_ahead <= 0:
@@ -106,6 +113,8 @@ class AddressBook(UserDict):
         upcoming_birthdays = []
         today = date.today()
         for contact in self.data.values():
+            if contact.birthday is None:
+                continue
             #rewrite birth year w current year
             birthday_this_year = contact.birthday.value.replace(year=today.year)
 
