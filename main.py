@@ -5,11 +5,13 @@ def input_error(func):
         try: 
             return func(*args, **kwargs)
         except ValueError:
-            return "Invalid input!"
+            return "Invalid input."
         except KeyError:
             return "Please provide a valid contact name."
         except IndexError:
             return "Please provide a name."
+        except AttributeError:
+            return "No value found."
     return inner
 
 @input_error
@@ -38,20 +40,15 @@ def change_contact(args, book:AddressBook):
     name, phone, phone_new, *_ = args
     record = book.find(name) #find the contact to be updated
     message = f"Contact {name} updated with phone {phone}" 
-    if record: #if found update phone
-        record.edit_phone(phone, phone_new)
-    else: 
-        message = "Invalid contact name"
+    record.edit_phone(phone, phone_new)
     return message
 
 @input_error
 def print_phone(args, book:AddressBook):
     name, *_ = args
     record = book.find(name)
-    if record:
-        # a string w phone values of a record separated by commas
-        return f"{', '.join(phone.value for phone in record.phones)}" 
-    return f"No phones found for record {name}"
+    return f"{', '.join(phone.value for phone in record.phones)}" 
+
 
 @input_error    
 def print_all_contacts(book:AddressBook):
@@ -61,7 +58,7 @@ def print_all_contacts(book:AddressBook):
 def add_birthday(args, book:AddressBook):
     name, birthday, *_ = args
     record = book.find(name)
-    message = f"Contact {name} already has a birthday on {record.return_birthday()}"
+    message = f"Contact {name} already has a birthday on {record.birthday}"
     if record.birthday is None:
         record.add_birthday(birthday)
         message = f"Birthday {birthday} added for contact {name}"
@@ -71,12 +68,7 @@ def add_birthday(args, book:AddressBook):
 def show_birthday(args, book:AddressBook):
     name, *_ = args
     record = book.find(name)
-    if record:
-        date = record.return_birthday()
-        birthday = date if date is not None else "No birthday found"
-        return birthday
-    else: 
-        return f"Contact {name} not found, can't show birthday"
+    return record.birthday
 
 @input_error
 def birthdays(book:AddressBook):

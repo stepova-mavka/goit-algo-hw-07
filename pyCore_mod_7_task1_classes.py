@@ -33,7 +33,8 @@ class Birthday(Field):
     def __init__(self, value:str):
         try:
             value = re.sub(r"(\d{2}).(\d{2}).(\d{4})", r"\1-\2-\3", value) # validate input
-            value = datetime.strptime(value, "%d-%m-%Y").date() # convert string to date            
+            value = datetime.strptime(value, "%d-%m-%Y").date() # convert string to date         
+            value = value.strftime("%d-%m-%Y") # convert back to string
             self.value = value
         except ValueError:
             raise ValueError("Invalid date format. Use DD.MM.YYYY")
@@ -73,11 +74,7 @@ class Record:
 
     def add_birthday(self, birthday_value:str):
         self.birthday = Birthday(birthday_value)
-
-    def return_birthday(self):
-        if self.birthday:
-            return self.birthday.value.strftime("%d.%m.%Y")
-    
+  
     def __str__(self):
         return f"Contact name: {self.name.value},\nBirthday: {self.birthday}\nPhones: {'; '.join(p.value for p in self.phones)}"
 
@@ -93,7 +90,7 @@ class AddressBook(UserDict):
         return self.data.get(name) #return Record object
     
     def _string_to_date(self, date_string:str):
-        return datetime.strptime(date_string, "%Y.%m.%d").date()
+        return datetime.strptime(date_string, "%d-%m-%Y").date()
 
     def _date_to_string(self, date):
         return date.strftime("%d.%m.%Y")
@@ -115,13 +112,15 @@ class AddressBook(UserDict):
         for contact in self.data.values():
             if contact.birthday is None:
                 continue
+            #convert string to date
+            birthday_this_year = self._string_to_date(contact.birthday.value)
             #rewrite birth year w current year
-            birthday_this_year = contact.birthday.value.replace(year=today.year)
+            birthday_this_year = birthday_this_year.replace(year=today.year)
 
             # check if birthday already was this year
             if birthday_this_year < today: 
                 # if so add year
-                birthday_this_year = contact.birthday.replace(year = today.year + 1) 
+                birthday_this_year = birthday_this_year.replace(year = today.year + 1) 
 
             #if birthday is within 7 days from now
             if 0 <= (birthday_this_year - today).days <= days:
